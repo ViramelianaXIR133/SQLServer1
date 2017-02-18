@@ -1,4 +1,7 @@
-﻿using System;
+﻿using asp_mvc2new.Models.EntityManager;
+using asp_mvc2new.Models.ViewModel;
+using asp_mvc2new.Security;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Web;
@@ -18,5 +21,82 @@ namespace asp_mvc2new.Controllers
         {
             return View();
         }
+        [AuthorizeRoles("Admin")]
+        public ActionResult AdminOnly()
+        {
+            return View();
+        }
+
+        public ActionResult UnAuthorized()
+        {
+            return View();
+        }
+
+
+
+        [AuthorizeRoles("Admin")]
+        public ActionResult ManageUserPartial(string status = "")
+        {
+            if (User.Identity.IsAuthenticated)
+            {
+                string loginName = User.Identity.Name;
+                UserManager UM = new UserManager();
+                UserDataView UDV = UM.GetUserDataView(loginName);
+                string message = string.Empty;
+                if (status.Equals("update"))
+                    message = "Update Successful";
+                else if (status.Equals("delete"))
+                    message = "Delete Successful";
+                ViewBag.Message = message;
+                return PartialView(UDV);
+            }
+            return RedirectToAction("Index", "Home");
+        }
+       
+
+          
+
+        [AuthorizeRoles("Admin")]
+
+        public ActionResult UpdateUserData(int userID, string loginName, string password,
+
+  string firstName, string lastName, string gender, int roleID = 0)
+        {
+
+            UserProfileView UPV = new UserProfileView();
+
+            UPV.SYSUserID = userID;
+
+            UPV.LoginName = loginName;
+
+            UPV.Password = password;
+
+            UPV.FirstName = firstName;
+
+            UPV.LastName = lastName;
+
+            UPV.Gender = gender;
+
+            if (roleID > 0)
+
+                UPV.LOOKUPRoleID = roleID;
+
+            UserManager UM = new UserManager();
+
+            UM.UpdateUserAccount(UPV);
+
+            return Json(new { success = true });
+
+        }
+        [AuthorizeRoles("Admin")]
+        public ActionResult DeleteUSer(int UserID)
+        {
+            UserManager UM = new UserManager();
+            UM.DeleteUser(UserID);
+            return Json(new { success = true });
+
+        }
     }
+
 }
+
